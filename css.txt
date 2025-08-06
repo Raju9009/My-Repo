@@ -1,0 +1,50 @@
+/////////////////////////////////////////
+// UpdateBlobs is an example application 
+// that shows some of the APIs providing
+// support for changing Blob objects 
+// and reflecting those changes to the 
+// database.
+//
+// This program must be run after
+// the PutGetBlobs program has completed.
+/////////////////////////////////////////
+import java.sql.*;
+
+public class UpdateBlobs {
+   public static void main(String[] args) 
+   throws SQLException 
+   {
+      Connection c = DriverManager.getConnection("jdbc:db2:*local");    
+      Statement s = c.createStatement();
+      
+      ResultSet rs = s.executeQuery("SELECT * FROM CUJOSQL.BLOBTABLE");
+
+      rs.next();
+      Blob blob1 = rs.getBlob(1);
+      rs.next();
+      Blob blob2 = rs.getBlob(1);
+
+
+      // Truncate a BLOB.
+      blob1.truncate((long) 150000);
+      System.out.println("Blob1's new length is " + blob1.length());
+
+      // Update part of the BLOB with a new byte array.
+      // The following code obtains the bytes that are at 
+      // positions 4000-4500 and set them to positions 500-1000.  
+
+      // Obtain part of the BLOB as a byte array.
+      byte[] bytes = blob1.getBytes(4000L, 4500);
+
+      int bytesWritten = blob2.setBytes(500L, bytes);
+
+      System.out.println("Bytes written is " + bytesWritten);
+
+      // The bytes are now found at position 500 in blob2
+      long startInBlob2 = blob2.position(bytes, 1);
+
+      System.out.println("pattern found starting at position " + startInBlob2);
+
+      c.close(); // Connection close also closes stmt and rs.
+   }
+}
